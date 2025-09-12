@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: Todo Management API
+  description: 基本的なTodo管理機能を提供するREST API
+  version: 0.1.0
+  contact:
+    name: GSK Todo Team
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+
+paths:
+  /todos:
+    get:
+      summary: Todo一覧を取得
+      description: 全てのTodo項目の一覧を取得します。ページネーション対応。
+      operationId: getTodos
+      parameters:
+        - name: skip
+          in: query
+          description: スキップする項目数（ページネーション）
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          description: 取得する最大項目数
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+      responses:
+        '200':
+          description: Todo一覧取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoListResponse'
+              examples:
+                success:
+                  summary: 正常レスポンス例
+                  value:
+                    todos:
+                      - id: 1
+                        text: "最初のTodo"
+                        completed: false
+                        created_at: "2025-09-13T10:00:00.000Z"
+                        updated_at: "2025-09-13T10:00:00.000Z"
+                      - id: 2
+                        text: "完了済みTodo"
+                        completed: true
+                        created_at: "2025-09-13T09:00:00.000Z"
+                        updated_at: "2025-09-13T10:30:00.000Z"
+                    total: 2
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - todos
+
+    post:
+      summary: 新しいTodoを作成
+      description: 新しいTodo項目を作成します
+      operationId: createTodo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoCreate'
+            examples:
+              basic:
+                summary: 基本的なTodo作成
+                value:
+                  text: "新しいタスク"
+                  completed: false
+      responses:
+        '201':
+          description: Todo作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                created:
+                  summary: 作成されたTodo
+                  value:
+                    id: 3
+                    text: "新しいタスク"
+                    completed: false
+                    created_at: "2025-09-13T11:00:00.000Z"
+                    updated_at: "2025-09-13T11:00:00.000Z"
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - todos
+
+  /todos/{todo_id}:
+    parameters:
+      - name: todo_id
+        in: path
+        required: true
+        description: Todo ID
+        schema:
+          type: integer
+          minimum: 1
+
+    get:
+      summary: 特定のTodoを取得
+      description: IDで指定されたTodo項目を取得します
+      operationId: getTodo
+      responses:
+        '200':
+          description: Todo取得成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                found:
+                  summary: Todoが見つかった場合
+                  value:
+                    id: 1
+                    text: "特定のTodo"
+                    completed: false
+                    created_at: "2025-09-13T10:00:00.000Z"
+                    updated_at: "2025-09-13T10:00:00.000Z"
+        '404':
+          $ref: '#/components/responses/TodoNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - todos
+
+    put:
+      summary: Todoを更新
+      description: IDで指定されたTodo項目を更新します（部分更新対応）
+      operationId: updateTodo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoUpdate'
+            examples:
+              complete_todo:
+                summary: Todoを完了にする
+                value:
+                  completed: true
+              update_text:
+                summary: テキストを更新
+                value:
+                  text: "更新されたタスク"
+              full_update:
+                summary: 全フィールド更新
+                value:
+                  text: "完全に更新されたタスク"
+                  completed: true
+      responses:
+        '200':
+          description: Todo更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                updated:
+                  summary: 更新されたTodo
+                  value:
+                    id: 1
+                    text: "更新されたタスク"
+                    completed: true
+                    created_at: "2025-09-13T10:00:00.000Z"
+                    updated_at: "2025-09-13T11:30:00.000Z"
+        '404':
+          $ref: '#/components/responses/TodoNotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - todos
+
+    delete:
+      summary: Todoを削除
+      description: IDで指定されたTodo項目を削除します
+      operationId: deleteTodo
+      responses:
+        '204':
+          description: Todo削除成功（レスポンスボディなし）
+        '404':
+          $ref: '#/components/responses/TodoNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - todos
+
+  /health:
+    get:
+      summary: ヘルスチェック
+      description: APIサーバーの稼働状況を確認
+      operationId: healthCheck
+      responses:
+        '200':
+          description: サーバー正常稼働
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2025-09-13T12:00:00.000Z"
+      tags:
+        - system
+
+components:
+  schemas:
+    TodoBase:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Todo内容テキスト
+          example: "サンプルタスク"
+        completed:
+          type: boolean
+          default: false
+          description: 完了フラグ
+          example: false
+
+    TodoCreate:
+      allOf:
+        - $ref: '#/components/schemas/TodoBase'
+      description: Todo作成時のリクエストモデル
+
+    TodoUpdate:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Todo内容テキスト（任意）
+          example: "更新されたタスク"
+        completed:
+          type: boolean
+          description: 完了フラグ（任意）
+          example: true
+      description: Todo更新時のリクエストモデル（部分更新対応）
+
+    TodoResponse:
+      allOf:
+        - $ref: '#/components/schemas/TodoBase'
+        - type: object
+          required:
+            - id
+            - created_at
+            - updated_at
+          properties:
+            id:
+              type: integer
+              minimum: 1
+              description: Todo ID
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+              description: 作成日時（ISO 8601）
+              example: "2025-09-13T10:00:00.000Z"
+            updated_at:
+              type: string
+              format: date-time
+              description: 更新日時（ISO 8601）
+              example: "2025-09-13T10:00:00.000Z"
+      description: Todo APIレスポンスモデル
+
+    TodoListResponse:
+      type: object
+      required:
+        - todos
+        - total
+      properties:
+        todos:
+          type: array
+          items:
+            $ref: '#/components/schemas/TodoResponse'
+          description: Todo項目配列
+        total:
+          type: integer
+          minimum: 0
+          description: 総件数
+          example: 42
+      description: Todo一覧取得のレスポンスモデル
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: エラー詳細メッセージ
+          example: "Todo with id 999 not found"
+
+    ValidationError:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                description: バリデーションエラータイプ
+                example: "string_too_short"
+              loc:
+                type: array
+                items:
+                  type: string
+                description: エラー発生箇所
+                example: ["body", "text"]
+              msg:
+                type: string
+                description: エラーメッセージ
+                example: "String should have at least 1 character"
+              input:
+                description: 入力値
+                example: ""
+
+  responses:
+    TodoNotFound:
+      description: 指定されたTodoが見つからない
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            not_found:
+              summary: Todo not found
+              value:
+                detail: "Todo with id 999 not found"
+
+    ValidationError:
+      description: リクエストデータのバリデーションエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          examples:
+            empty_text:
+              summary: 空のテキスト
+              value:
+                detail:
+                  - type: "string_too_short"
+                    loc: ["body", "text"]
+                    msg: "String should have at least 1 character"
+                    input: ""
+            text_too_long:
+              summary: テキストが長すぎる
+              value:
+                detail:
+                  - type: "string_too_long"
+                    loc: ["body", "text"]
+                    msg: "String should have at most 1000 characters"
+                    input: "very long text..."
+
+    InternalServerError:
+      description: サーバー内部エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            server_error:
+              summary: Server error
+              value:
+                detail: "Internal server error"
+
+tags:
+  - name: todos
+    description: Todo管理操作
+  - name: system
+    description: システム関連操作
