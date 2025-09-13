@@ -8,7 +8,7 @@
 1. Load feature spec from Input path ✓
    → Feature spec loaded successfully
 2. Fill Technical Context (scan for NEEDS CLARIFICATION) ✓
-   → Detected Project Type: single (Rust CLI application)
+   → Detected Project Type: web (FastAPI backend application)
    → Set Structure Decision: Option 1 (single project)
 3. Evaluate Constitution Check section below ✓
    → No violations detected in initial approach
@@ -116,49 +116,42 @@ requirements.txt     # pip requirements
 
 研究タスクと決定事項をresearch.mdに統合：
 
-1. **Rust永続化オプション**:
-   - Decision: serde_json + std::fs
-   - Rationale: シンプル、依存関係最小、人間可読
-   - Alternatives considered: bincode, SQLite, toml
+1. **Python Web Framework選択**:
+   - Decision: FastAPI
+   - Rationale: 高性能、自動型検証、OpenAPI生成、現代的なasync/await
+   - Alternatives considered: Flask, Django, Starlette
 
-2. **ファイルロック戦略**:  
-   - Decision: Advisory locking with fs2 crate
-   - Rationale: クロスプラットフォーム、競合状態防止
-   - Alternatives considered: 原子的書き込み、PID files
+2. **データベース戦略**:
+   - Decision: SQLite インメモリデータベース + SQLAlchemy
+   - Rationale: 設定不要、高速、開発・テストに適している
+   - Alternatives considered: PostgreSQL, MySQL, ファイル永続化
 
-3. **エラーハンドリング**:
-   - Decision: anyhow (main) + thiserror (library errors)
-   - Rationale: 標準的なRustエラーハンドリング、豊富なコンテキスト
-   - Alternatives considered: std::error単体、eyre
+3. **API設計パターン**:
+   - Decision: REST API with standard HTTP methods
+   - Rationale: 標準的、シンプル、FastAPIが得意とするパターン
+   - Alternatives considered: GraphQL, RPC style
 
 **Output**: research.md with all NEEDS CLARIFICATION resolved ✓
 
 ## Phase 1: Design & Contracts
 
 1. **データモデル** (data-model.md):
-   ```rust
-   #[derive(Serialize, Deserialize, Debug, Clone)]
-   pub struct Todo {
-       pub id: u64,
-       pub text: String,
-       pub completed: bool,
-       pub created_at: DateTime<Utc>,
-       pub updated_at: DateTime<Utc>,
-   }
-   ```
+   - SQLAlchemyモデル: TodoDB（DB永続化用）
+   - Pydanticモデル: TodoCreate, TodoUpdate, TodoResponse（API用）
+   - バリデーション: 1-1000文字制限、必須フィールド
 
 2. **API contracts** (contracts/):
-   - CLI commands: create, list, complete, delete
-   - JSON output format specification
-   - Error response schemas
+   - REST endpoints: GET/POST /todos, GET/PUT/DELETE /todos/{id}
+   - OpenAPI schema specification
+   - Error response schemas (404, 422, etc.)
 
-3. **契約テスト**: 
-   - CLI実行結果の検証
-   - JSONスキーマ検証
-   - エラーケースの検証
+3. **契約テスト**:
+   - API endpoint schema validation
+   - Request/Response format verification
+   - Error handling test cases
 
 4. **CLAUDE.mdの更新**:
-   - Rust/cargo context追加
+   - FastAPI/Python context追加
    - Todo管理プロジェクト情報追加
    - 最新技術選択の記録
 
@@ -168,18 +161,18 @@ requirements.txt     # pip requirements
 *This section describes what the /tasks command will do - DO NOT execute during /plan*
 
 **Task Generation Strategy**:
-- 保存処理優先でタスク生成
+- API優先でタスク生成
 - TDD順序: テスト → 実装
-- Rust特有のタスク（型定義、トレイト実装）
+- FastAPI特有のタスク（モデル定義、エンドポイント実装）
 
 **Ordering Strategy**:
-1. Todo構造体定義とシリアライゼーションテスト [P]
-2. ファイル保存・読み込み機能テスト [P] 
-3. CLIコマンド契約テスト
-4. 統合テスト（E2E）
+1. データモデル定義テスト（SQLAlchemy + Pydantic） [P]
+2. データベース接続・設定テスト [P]
+3. API契約テスト（OpenAPI schema）
+4. 統合テスト（HTTP endpoint E2E）
 5. 実装タスク（テストを通すため）
 
-**Estimated Output**: 20-25のタスク、保存処理重点
+**Estimated Output**: 25-30のタスク、API開発重点
 
 **IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 
