@@ -1,83 +1,83 @@
-# Implementation Plan: Todo管理システム
+# 実装計画: Todo管理システム
 
 **Branch**: `001-todo-management-system` | **Date**: 2025-09-13 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/001-todo-management-system/spec.md`
+**入力**: `/specs/001-todo-management-system/spec.md`からの機能仕様
 
-## Execution Flow (/plan command scope)
+## 実行フロー (/planコマンドの範囲)
 ```
-1. Load feature spec from Input path ✓
-   → Feature spec loaded successfully
-2. Fill Technical Context (scan for NEEDS CLARIFICATION) ✓
-   → Detected Project Type: web (FastAPI backend application)
-   → Set Structure Decision: Option 1 (single project)
-3. Evaluate Constitution Check section below ✓
-   → No violations detected in initial approach
-   → Update Progress Tracking: Initial Constitution Check ✓
-4. Execute Phase 0 → research.md ✓
-   → Research tasks generated for Rust storage options
-5. Execute Phase 1 → contracts, data-model.md, quickstart.md, CLAUDE.md ✓
-6. Re-evaluate Constitution Check section ✓
-   → Design follows constitutional principles
-   → Update Progress Tracking: Post-Design Constitution Check ✓
-7. Plan Phase 2 → Task generation approach described ✓
-8. STOP - Ready for /tasks command ✓
+1. 入力パスから機能仕様を読み込み ✓
+   → 機能仕様の読み込み成功
+2. 技術コンテキストを記入 (NEEDS CLARIFICATIONをスキャン) ✓
+   → 検出されたプロジェクトタイプ: web (FastAPIバックエンドアプリケーション)
+   → 構造決定を設定: オプション1 (単一プロジェクト)
+3. 以下のConstitution Checkセクションを評価 ✓
+   → 初期アプローチで違反なし
+   → Progress Trackingを更新: 初期Constitution Check ✓
+4. Phase 0を実行 → research.md ✓
+   → FastAPI技術選択の研究タスクを生成
+5. Phase 1を実行 → contracts, data-model.md, quickstart.md, CLAUDE.md ✓
+6. Constitution Checkセクションを再評価 ✓
+   → 設計はConstitution原則に従っている
+   → Progress Trackingを更新: 設計後Constitution Check ✓
+7. Phase 2を計画 → タスク生成アプローチを記述 ✓
+8. 停止 - /tasksコマンドの準備完了 ✓
 ```
 
-**IMPORTANT**: The /plan command STOPS at step 7. Phases 2-4 are executed by other commands:
-- Phase 2: /tasks command creates tasks.md
-- Phase 3-4: Implementation execution (manual or via tools)
+**重要**: /planコマンドはステップ7で停止します。フェーズ2-4は他のコマンドで実行されます:
+- フェーズ2: /tasksコマンドがtasks.mdを作成
+- フェーズ3-4: 実装実行 (手動またはツール経由)
 
-## Summary
+## 概要
 Todo管理システムの基本的なCRUD操作を提供するFastAPI Webアプリケーション。REST API経由でのTodo管理機能、SQLAlchemyによるインメモリデータベース、完全な型安全性（mypy）、コード品質管理（ruff）を含む現代的なPython Webサービス。
 
-## Technical Context
-**Language/Version**: Python 3.11+  
-**Primary Dependencies**: fastapi, sqlalchemy, uvicorn, pydantic  
-**Storage**: SQLite インメモリデータベース (sqlite:///:memory:)  
-**Testing**: pytest + httpx (FastAPI test client)  
-**Target Platform**: Web API (Linux server, Docker対応)
-**Project Type**: web - FastAPI backend  
-**Performance Goals**: 1000 req/s, <100ms レスポンス時間  
-**Constraints**: インメモリDB（再起動でデータ消失）、型安全性必須  
-**Scale/Scope**: 単一ユーザー、REST API、基本的なCRUD操作
-**Code Quality**: ruff (linter/formatter), mypy (型チェック)
+## 技術コンテキスト
+**言語/バージョン**: Python 3.11+
+**主要依存関係**: fastapi, sqlalchemy, uvicorn, pydantic
+**ストレージ**: SQLite インメモリデータベース (sqlite:///:memory:)
+**テスト**: pytest + httpx (FastAPI test client)
+**対象プラットフォーム**: Web API (Linux server, Docker対応)
+**プロジェクトタイプ**: web - FastAPI backend
+**パフォーマンス目標**: 1000 req/s, <100ms レスポンス時間
+**制約**: インメモリDB（再起動でデータ消失）、型安全性必須
+**規模/範囲**: 単一ユーザー、REST API、基本的なCRUD操作
+**コード品質**: ruff (linter/formatter), mypy (型チェック)
 
 ## Constitution Check
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*ゲート: Phase 0研究前に通過必要。Phase 1設計後に再チェック。*
 
-**Simplicity**:
-- Projects: 1 (FastAPI Web API)
-- Using framework directly? Yes (FastAPI, SQLAlchemy直接使用)
-- Single data model? Yes (Todo Pydanticモデル + SQLAlchemyモデル)
-- Avoiding patterns? Yes (直接SQLAlchemy使用、Repository pattern避ける)
+**シンプルさ**:
+- プロジェクト数: 1 (FastAPI Web API)
+- フレームワークを直接使用? はい (FastAPI, SQLAlchemy直接使用)
+- 単一データモデル? はい (Todo Pydanticモデル + SQLAlchemyモデル)
+- パターンを避ける? はい (直接SQLAlchemy使用、Repository pattern避ける)
 
-**Architecture**:
-- EVERY feature as library? Yes (todo-lib)
-- Libraries listed: todo-lib (Todo CRUD操作、データベース管理)
-- API per library: REST API (/todos endpoint group)
-- Library docs: llms.txt format planned? Yes
+**アーキテクチャ**:
+- すべての機能をライブラリとして? はい (todo-lib)
+- ライブラリ一覧: todo-lib (Todo CRUD操作、データベース管理)
+- ライブラリ毎のAPI: REST API (/todos endpoint group)
+- ライブラリドキュメント: llms.txt形式を計画? はい
 
-**Testing (NON-NEGOTIABLE)**:
-- RED-GREEN-Refactor cycle enforced? Yes
-- Git commits show tests before implementation? Yes
-- Order: Contract→Integration→E2E→Unit strictly followed? Yes
-- Real dependencies used? Yes (実際のSQLiteインメモリDB)
-- Integration tests for: API endpoints, データベース操作, エラーレスポンス
-- FORBIDDEN: Implementation before test, skipping RED phase
+**テスト (譲れない)**:
+- RED-GREEN-Refactorサイクルを強制? はい
+- Gitコミットで実装前にテストを表示? はい
+- 順序: Contract→Integration→E2E→Unitを厳密に従う? はい
+- 実際の依存関係を使用? はい (実際のSQLiteインメモリDB)
+- 統合テスト対象: API endpoints, データベース操作, エラーレスポンス
+- 禁止事項: テスト前の実装、REDフェーズのスキップ
 
-**Observability**:
-- Structured logging included? Yes (uvicorn + Python logging)
-- Frontend logs → backend? N/A (API単体)
-- Error context sufficient? Yes (FastAPI exception handling)
+**可観測性**:
+- 構造化ログを含む? はい (uvicorn + Python logging)
+- フロントエンドログ → バックエンド? N/A (API単体)
+- エラーコンテキストは十分? はい (FastAPI exception handling)
 
-**Versioning**:
-- Version number assigned? 0.1.0
-- BUILD increments on every change? Yes
-- Breaking changes handled? N/A (初期実装)
+**バージョン管理**:
+- バージョン番号割り当て? 0.1.0
+- 変更毎にBUILDを増分? はい
+- 破壊的変更の処理? N/A (初期実装)
 
-## Project Structure
+## プロジェクト構造
 
-### Documentation (this feature)
+### ドキュメント (この機能)
 ```
 specs/001-todo-management-system/
 ├── plan.md              # This file (/plan command output) ✓
@@ -88,7 +88,7 @@ specs/001-todo-management-system/
 └── tasks.md             # Phase 2 output (/tasks command - NOT created by /plan)
 ```
 
-### Source Code (repository root)
+### ソースコード (リポジトリルート)
 ```
 # FastAPI Web Application
 src/
@@ -110,104 +110,104 @@ mypy.ini            # mypy設定
 requirements.txt     # pip requirements
 ```
 
-**Structure Decision**: Single FastAPI application with clear separation of concerns
+**構造決定**: 関心事の明確な分離を持つ単一FastAPIアプリケーション
 
 ## Phase 0: Outline & Research
 
 研究タスクと決定事項をresearch.mdに統合：
 
 1. **Python Web Framework選択**:
-   - Decision: FastAPI
-   - Rationale: 高性能、自動型検証、OpenAPI生成、現代的なasync/await
-   - Alternatives considered: Flask, Django, Starlette
+   - 決定: FastAPI
+   - 理由: 高性能、自動型検証、OpenAPI生成、現代的なasync/await
+   - 検討した代替案: Flask, Django, Starlette
 
 2. **データベース戦略**:
-   - Decision: SQLite インメモリデータベース + SQLAlchemy
-   - Rationale: 設定不要、高速、開発・テストに適している
-   - Alternatives considered: PostgreSQL, MySQL, ファイル永続化
+   - 決定: SQLite インメモリデータベース + SQLAlchemy
+   - 理由: 設定不要、高速、開発・テストに適している
+   - 検討した代替案: PostgreSQL, MySQL, ファイル永続化
 
 3. **API設計パターン**:
-   - Decision: REST API with standard HTTP methods
-   - Rationale: 標準的、シンプル、FastAPIが得意とするパターン
-   - Alternatives considered: GraphQL, RPC style
+   - 決定: 標準的なHTTPメソッドを使用するREST API
+   - 理由: 標準的、シンプル、FastAPIが得意とするパターン
+   - 検討した代替案: GraphQL, RPCスタイル
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved ✓
+**出力**: すべてのNEEDS CLARIFICATIONを解決したresearch.md ✓
 
-## Phase 1: Design & Contracts
+## フェーズ1: 設計と契約
 
 1. **データモデル** (data-model.md):
    - SQLAlchemyモデル: TodoDB（DB永続化用）
    - Pydanticモデル: TodoCreate, TodoUpdate, TodoResponse（API用）
    - バリデーション: 1-1000文字制限、必須フィールド
 
-2. **API contracts** (contracts/):
-   - REST endpoints: GET/POST /todos, GET/PUT/DELETE /todos/{id}
-   - OpenAPI schema specification
-   - Error response schemas (404, 422, etc.)
+2. **API契約** (contracts/):
+   - RESTエンドポイント: GET/POST /todos, GET/PUT/DELETE /todos/{id}
+   - OpenAPIスキーマ仕様
+   - エラーレスポンススキーマ (404, 422, など)
 
 3. **契約テスト**:
-   - API endpoint schema validation
-   - Request/Response format verification
-   - Error handling test cases
+   - APIエンドポイントスキーマ検証
+   - リクエスト/レスポンス形式確認
+   - エラーハンドリングテストケース
 
 4. **CLAUDE.mdの更新**:
-   - FastAPI/Python context追加
+   - FastAPI/Pythonコンテキスト追加
    - Todo管理プロジェクト情報追加
    - 最新技術選択の記録
 
-**Output**: data-model.md, /contracts/*, failing tests, quickstart.md, CLAUDE.md ✓
+**出力**: data-model.md, /contracts/*, 失敗テスト, quickstart.md, CLAUDE.md ✓
 
-## Phase 2: Task Planning Approach
-*This section describes what the /tasks command will do - DO NOT execute during /plan*
+## フェーズ2: タスク計画アプローチ
+*このセクションは/tasksコマンドが何をするかを説明します - /plan中は実行しないでください*
 
-**Task Generation Strategy**:
+**タスク生成戦略**:
 - API優先でタスク生成
 - TDD順序: テスト → 実装
 - FastAPI特有のタスク（モデル定義、エンドポイント実装）
 
-**Ordering Strategy**:
+**順序戦略**:
 1. データモデル定義テスト（SQLAlchemy + Pydantic） [P]
 2. データベース接続・設定テスト [P]
-3. API契約テスト（OpenAPI schema）
-4. 統合テスト（HTTP endpoint E2E）
+3. API契約テスト（OpenAPIスキーマ）
+4. 統合テスト（HTTPエンドポイントE2E）
 5. 実装タスク（テストを通すため）
 
-**Estimated Output**: 25-30のタスク、API開発重点
+**推定出力**: 25-30のタスク、API開発重点
 
-**IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
+**重要**: このフェーズは/tasksコマンドで実行され、/planでは実行されません
 
-## Phase 3+: Future Implementation
-*These phases are beyond the scope of the /plan command*
+## フェーズ3+: 今後の実装
+*これらのフェーズは/planコマンドの範囲外です*
 
-**Phase 3**: Task execution (/tasks command creates tasks.md)  
-**Phase 4**: Implementation (execute tasks.md following constitutional principles)  
-**Phase 5**: Validation (run tests, execute quickstart.md, performance validation)
+**フェーズ3**: タスク実行 (/tasksコマンドがtasks.mdを作成)
+**フェーズ4**: 実装 (Constitution原則に従ってtasks.mdを実行)
+**フェーズ5**: 検証 (テスト実行、quickstart.md実行、パフォーマンス検証)
 
-## Complexity Tracking
+## 複雑さ追跡
 *Constitution Checkで違反がない場合は空*
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
+| 違反 | 必要な理由 | より単純な代替案が却下された理由 |
+|------|-----------|---------------------------|
 | なし | なし | なし |
 
-## Progress Tracking
-*This checklist is updated during execution flow*
+## 進捗追跡
+*このチェックリストは実行フロー中に更新されます*
 
-**Phase Status**:
-- [x] Phase 0: Research complete (/plan command) ✓
-- [x] Phase 1: Design complete (/plan command) ✓
-- [x] Phase 2: Task planning complete (/plan command - describe approach only) ✓
-- [ ] Phase 3: Tasks generated (/tasks command)
-- [ ] Phase 4: Implementation complete
-- [ ] Phase 5: Validation passed
+**フェーズ状況**:
+- [x] フェーズ0: 研究完了 (/planコマンド) ✓
+- [x] フェーズ1: 設計完了 (/planコマンド) ✓
+- [x] フェーズ2: タスク計画完了 (/planコマンド - アプローチ記述のみ) ✓
+- [ ] フェーズ3: タスク生成 (/tasksコマンド)
+- [ ] フェーズ4: 実装完了
+- [ ] フェーズ5: 検証合格
 
-**Gate Status**:
-- [x] Initial Constitution Check: PASS ✓
-- [x] Post-Design Constitution Check: PASS ✓
-- [x] All NEEDS CLARIFICATION resolved ✓
-- [x] Complexity deviations documented (なし) ✓
+**ゲート状況**:
+- [x] 初期Constitution Check: 合格 ✓
+- [x] 設計後Constitution Check: 合格 ✓
+- [x] すべてのNEEDS CLARIFICATION解決 ✓
+- [x] 複雑さ逸脱の文書化 (なし) ✓
 
-**Generated Artifacts**:
+**生成された成果物**:
 - [x] research.md - 技術選択とFastAPI/SQLAlchemy決定 ✓
 - [x] data-model.md - Pydantic + SQLAlchemyモデル定義 ✓
 - [x] contracts/openapi.yaml - REST API仕様 ✓
@@ -216,4 +216,4 @@ requirements.txt     # pip requirements
 - [x] CLAUDE.md - AI開発コンテキスト ✓
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Constitution v2.1.1に基づく - `/memory/constitution.md`を参照*
